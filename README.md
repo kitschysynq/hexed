@@ -14,7 +14,7 @@ go get github.com/kitschysynq/hexed
 package main
 
 import (
-	"io"
+	"fmt"
 	"os"
 
 	"github.com/kitschysynq/hexed"
@@ -24,7 +24,7 @@ func main() {
 	w := hexed.NewEncoder(os.Stdout)
 	defer w.Close()
 
-	fmt.Fprintf("this is a totally rad example")
+	fmt.Fprintf(w, "this is a totally rad example")
 }
 ```
 

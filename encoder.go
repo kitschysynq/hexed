@@ -5,33 +5,33 @@ import (
 	"io"
 )
 
-// An Encoder writes hex-editor-style lines to the wrapped io.Writer. For each
-// 8-byte chunk of data written to the Encoder, a single line will be written
-// to the output. Each line consists of the hexadecimal adress of the first
-// byte on the line, followed byte space-separated, hex-encoded bytes, followed
-// by the string representation of the bytes with non-printable characters
-// replaced by '.'.
-//
-// For example: writing the string 'totally radical!' to the Encoder will
-// result in the following being written to the underlying io.Writer:
-//
-// 00000000: 746f 7461 6c6c 7920 7261 6469 6361 6c21  totally radical!
-//
-// The caller must Close the encoder to flush any partially written blocks. 
-type Encoder struct {
+type enc struct {
 	w   io.Writer
 	buf []byte
 	n   int
 	e   error
 }
 
-// NewEncoder returns an Encoder object wrapping the given io.Writer
-func NewEncoder(w io.Writer) *Encoder {
-	return &Encoder{w: w}
+// NewEncoder returns an encoder object wrapping the given io.Writer. An
+// encoder writes hex-editor-style lines to the wrapped io.Writer. For each
+// 8-byte chunk of data written to the Encoder, a single line will be written
+// to the output. Each line consists of the hexadecimal adress of the first
+// byte on the line, followed byte space-separated, hex-encoded bytes, followed
+// by the string representation of the bytes with non-printable characters
+// replaced by '.'.
+//
+// For example: writing the string 'totally\tradical!' to the Encoder will
+// result in the following being written to the underlying io.Writer:
+//
+// 00000000: 746f 7461 6c6c 7909 7261 6469 6361 6c21  totally.radical!
+//
+// The caller must Close the encoder to flush any partially written blocks. 
+func NewEncoder(w io.Writer) io.WriteCloser {
+	return &enc{w: w}
 }
 
 // Write implements the io.Writer interface
-func (e *Encoder) Write(b []byte) (int, error) {
+func (e *enc) Write(b []byte) (int, error) {
 	if e.e != nil {
 		return 0, e.e
 	}
@@ -45,7 +45,7 @@ func (e *Encoder) Write(b []byte) (int, error) {
 
 // Close flushes any remaining data in the buffer. Further writes to the
 // encoder will return io.EOF
-func (e *Encoder) Close() error {
+func (e *enc) Close() error {
 	if err := e.drain(); err != nil {
 		e.e = err
 		return err
@@ -65,7 +65,7 @@ func (e *Encoder) Close() error {
 	return nil
 }
 
-func (e *Encoder) drain() error {
+func (e *enc) drain() error {
 	for len(e.buf) >= 16 {
 		if _, err := fmt.Fprintf(e.w, fmtStrings[16], e.chunks(e.buf[:16])...); err != nil {
 			return err
@@ -80,7 +80,7 @@ func (e *Encoder) drain() error {
 	return nil
 }
 
-func (e *Encoder) chunks(b []byte) []any {
+func (e *enc) chunks(b []byte) []any {
 	chunks := []any{e.n}
 	for i := 0; i < (len(b)/2)*2; i += 2 {
 		chunks = append(chunks, b[i:i+2])

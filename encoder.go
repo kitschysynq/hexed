@@ -14,11 +14,11 @@ type enc struct {
 
 // NewEncoder returns an encoder object wrapping the given io.Writer. An
 // encoder writes hex-editor-style lines to the wrapped io.Writer. For each
-// 8-byte chunk of data written to the Encoder, a single line will be written
+// 16-byte chunk of data written to the Encoder, a single line will be written
 // to the output. Each line consists of the hexadecimal adress of the first
-// byte on the line, followed byte space-separated, hex-encoded bytes, followed
-// by the string representation of the bytes with non-printable characters
-// replaced by '.'.
+// byte on the line, followed byte space-separated, hex-encoded byte pairs,
+// followed by the string representation of the bytes with non-printable
+// characters replaced by '.'.
 //
 // For example: writing the string 'totally\tradical!' to the Encoder will
 // result in the following being written to the underlying io.Writer:
